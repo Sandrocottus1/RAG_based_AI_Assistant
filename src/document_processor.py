@@ -27,5 +27,7 @@ class DocProc:
 
     def get_frags(self):
         d=self.ld_docs()
-        return self.spl.split_documents(d)
+        frags= self.spl.split_documents(d)
+        print(f"Loaded {len(d)} docs → {len(frags)} chunks")
+        return frags
       
