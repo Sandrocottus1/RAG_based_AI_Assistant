@@ -1,0 +1,13 @@
+Pluang Engineering Standards v4.0
+
+1. Code Review
+No PR shall be merged without 2 approvals. 
+Self-merging is strictly prohibited unless during a P0 incident.
+
+2. Tech Stack
+Backend: Go (Golang) for high-throughput services. Python for Data/AI.
+Frontend: React Native for mobile, Next.js for web dashboards.
+
+3. Deployment
+We use a Blue-Green deployment strategy on Kubernetes (GKE).
+Friday deploys are banned after 2 PM local time.

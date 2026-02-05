@@ -1,0 +1,14 @@
+Pluang Remote Work Policy (2025 Edition)
+
+1. Eligibility
+All engineering staff are eligible for "Hybrid-First" working models. 
+Technicians and security staff must be on-site.
+
+2. The 3-2 Rule
+Employees must be visible in the Jakarta or Bangalore office 3 days a week.
+The remaining 2 days are flexible remote days. 
+Wednesday is a mandatory "All-Hands" day in the office.
+
+3. Equipment
+Pluang provides a one-time stipend of $500 for home office setup.
+MacBook Pros are standard issue for dev roles.
