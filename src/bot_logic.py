@@ -1,31 +1,60 @@
-from langchain.chains import RetrievalQA
-from langchain_community.llms import HiggingFaceHub
-from langchain.prompts import PromptTemplate
+import os
+
+from huggingface_hub import InferenceClient
 
 from src.config import Cfg
 
 class RAGBot:
-    def __init__(self, v_db):
-        self.db=v_db
-        self.llm=HiggingFaceHub(
-            repo_id="google/flan-t5-large",
-            model_kwargs={"temperature":0.1,"max_length":512}
-        )
-    
+    def __init__(self, vector_store):
+        self.vector_store = vector_store
+        self.api_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
+        # CHANGED: Switched to Zephyr (Smarter & Online)
+        self.repo_id = "HuggingFaceH4/zephyr-7b-beta"
+        self.client = InferenceClient(api_key=self.api_token) if self.api_token else None
+
     def get_chn(self):
-        tmpl = """
-        Use the context below to answer the question. If you don't know, say "Data not found in Pluang KB".
-        Context: {context}
-        Question: {question}
-        Answer:
-        """
-        p=PromptTemplate(template=tmpl, input_variables=["context","question"])
+        return self
 
+    def invoke(self, input_dict):
+        query = input_dict["query"]
 
-        return RetrievalQA.from_chain_type(
-            llm=self.llm,
-            chain_type="stuff",
-            retriever=self.db.as_retriever(search_kwars={"k":Cfg.k_ret}),
-            return_source_documents=True,
-            chain_type_kwargs={"prompt":p}
+        # 1. Retrieve Docs
+        docs = self.vector_store.similarity_search(query, k=Cfg.k_ret)
+        
+        # 2. Build messages for chat-completions
+        context_text = "\n\n".join([d.page_content for d in docs])
+        system_msg = (
+            "You are a helpful assistant. Use the context provided to answer the user's question. "
+            "If you don't know, say \"I don't know\". Do not make up facts.\n\n"
+            f"Context:\n{context_text}"
         )
+
+        if not self.api_token:
+            return {
+                "result": "Missing HUGGINGFACEHUB_API_TOKEN in environment.",
+                "source_documents": docs,
+            }
+        if not self.client:
+            return {
+                "result": "Missing InferenceClient configuration.",
+                "source_documents": docs,
+            }
+
+        try:
+            completion = self.client.chat.completions.create(
+                model=self.repo_id,
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": query},
+                ],
+                max_tokens=512,
+                temperature=0.1,
+            )
+            ans = completion.choices[0].message.content
+        except Exception as e:
+            ans = f"Connection Error: {str(e)}"
+
+        return {
+            "result": ans,
+            "source_documents": docs
+        }

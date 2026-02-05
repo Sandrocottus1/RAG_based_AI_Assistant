@@ -1,8 +1,10 @@
 streamlit
-langchain
-langchain-community
-langchain-huggingface
-faiss-cpu
+langchain>=0.3.0
+langchain-community>=0.3.0
+langchain-huggingface>=0.0.3
+langchain-core
 python-dotenv
-tiktoken
 pypdf
+faiss-cpu
+huggingface-hub
+numpy
