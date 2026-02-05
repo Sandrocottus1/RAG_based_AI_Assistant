@@ -28,6 +28,8 @@ class ManualHFEmbeddings(Embeddings):
 
     def _call_api(self, texts):
         try:
+            if not texts:
+                return []
             if not self.api_token:
                 print("Embedding API Error: Missing HUGGINGFACEHUB_API_TOKEN")
                 return [[0.0] * 384 for _ in texts]
