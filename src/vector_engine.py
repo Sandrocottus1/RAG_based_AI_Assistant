@@ -1,4 +1,4 @@
-from langchain_huggingface import HuggingFaceInstructEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from src.config import Cfg
 
@@ -13,10 +13,10 @@ class VecEng:
             db.save_local(Cfg.v_path)
             return db
         def ld_idx(self):
-            if os.path.exists(Cfg.v_path):
-                return FAISS.load_local(
-                    Cfg.v_path,
-                    self.emb,
-                    allow_dangerous_deserialization=True
-                )
-            return None
+            if not os.path.exists(Cfg.v_path):
+                raise FileNotFoundError("Vector index not found. Build it first.")
+            return FAISS.load_local(
+                Cfg.v_path,
+                self.emb,
+                allow_dangerous_deserialization=True
+            )
