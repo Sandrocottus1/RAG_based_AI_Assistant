@@ -38,6 +38,7 @@ def init_sys():
     if idx:
         bot = RAGBot(idx)
         return bot.get_chn()
+    st.sidebar.warning("Index not found. Use 'Re-Index Knowledge Base' to initialize.")
     return None
 
 if "qa" not in st.session_state:
