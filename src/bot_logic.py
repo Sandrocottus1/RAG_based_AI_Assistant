@@ -8,8 +8,7 @@ class RAGBot:
     def __init__(self, vector_store):
         self.vector_store = vector_store
         self.api_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
-        # CHANGED: Switched to Zephyr (Smarter & Online)
-        self.repo_id = "HuggingFaceH4/zephyr-7b-beta"
+        self.repo_id = Cfg.llm_model
         self.client = InferenceClient(api_key=self.api_token) if self.api_token else None
 
     def get_chn(self):
