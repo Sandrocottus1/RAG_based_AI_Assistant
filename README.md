@@ -27,6 +27,9 @@ pip install -r requirements.txt
 HUGGINGFACEHUB_API_TOKEN=your_token_here
 ```
 
+If you use a fine-grained token, make sure it has permission to call
+Inference Providers.
+
 Run
 ---
 ```
