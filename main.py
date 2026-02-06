@@ -52,15 +52,18 @@ if q := st.chat_input("Ask about Pluang's policies..."):
     st.chat_message("user").markdown(q)
 
     if qa:
-        # Send query to RAG pipeline
-        res = qa.invoke({"query": q})
-        ans = res["result"]
-        src = res["source_documents"]
-        
         # Display AI Response
         with st.chat_message("assistant"):
-            st.markdown(ans)
-            
+            placeholder = st.empty()
+            placeholder.markdown("_Hold on a sec..._")
+
+            # Send query to RAG pipeline
+            res = qa.invoke({"query": q})
+            ans = res["result"]
+            src = res["source_documents"]
+
+            placeholder.markdown(ans)
+
             # Show Citations
             with st.expander("View Sources"):
                 for s in src:
