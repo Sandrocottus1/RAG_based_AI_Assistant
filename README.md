@@ -6,6 +6,10 @@ Overview
 Streamlit-based internal knowledge assistant using a FAISS vector index and
 Hugging Face Router APIs for embeddings and LLM inference.
 
+Deployed App
+-------------
+Access the live application here: https://pluagassignment-sayjr7rvushwkwhsewnoxx.streamlit.app/
+
 Requirements
 ------------
 - Python 3.9+
