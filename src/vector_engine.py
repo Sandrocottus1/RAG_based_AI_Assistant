@@ -1,3 +1,4 @@
+# VecEng: embedding adapter and FAISS index create/load.
 import os
 from typing import List
 
@@ -9,11 +10,11 @@ from src.config import Cfg
 
 class ManualHFEmbeddings(Embeddings):
     def __init__(self):
+        # Read token from env so local dev and deployment use the same mechanism.
         self.api_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
         self.client = InferenceClient(api_key=self.api_token) if self.api_token else None
 
-    # FIX: This method makes the object "callable"
-    # When FAISS calls object(text), this runs automatically.
+    # Implement __call__ so FAISS can treat the embedding object like a function.
     def __call__(self, text: str) -> List[float]:
         return self.embed_query(text)
 
@@ -31,9 +32,11 @@ class ManualHFEmbeddings(Embeddings):
             if not texts:
                 return []
             if not self.api_token:
+                # Return zero vectors so the pipeline doesn't crash in demo mode.
                 print("Embedding API Error: Missing HUGGINGFACEHUB_API_TOKEN")
                 return [[0.0] * 384 for _ in texts]
             if not self.client:
+                # Same fallback to keep the UI responsive even if HF client fails.
                 print("Embedding API Error: Missing InferenceClient")
                 return [[0.0] * 384 for _ in texts]
 
@@ -44,8 +47,10 @@ class ManualHFEmbeddings(Embeddings):
                 return data
             if isinstance(data, list):
                 return [data]
+            # Final fallback: ensure downstream FAISS always receives a vector list.
             return [[0.0] * 384 for _ in texts]
         except Exception as e:
+            # Fail gracefully so indexing does not take down the whole app.
             print(f"Embedding Connection Error: {str(e)}")
             return [[0.0] * 384 for _ in texts]
 
@@ -55,6 +60,7 @@ class VecEng:
         self.vector_store = None
 
     def crt_idx(self, chunks):
+        # Build a fresh index when the admin re-ingests documents.
         self.vector_store = FAISS.from_documents(chunks, self.hf)
         self.vector_store.save_local(Cfg.idx_path)
         return self.vector_store
@@ -64,6 +70,7 @@ class VecEng:
             self.vector_store = FAISS.load_local(
                 Cfg.idx_path,
                 self.hf, 
+                # Local FAISS uses pickle; allow only because we own the index file.
                 allow_dangerous_deserialization=True
             )
         return self.vector_store

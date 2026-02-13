@@ -1,3 +1,4 @@
+# RAGBot: retrieval + LLM orchestration for grounded policy Q&A.
 import os
 
 from huggingface_hub import InferenceClient
@@ -7,8 +8,10 @@ from src.config import Cfg
 class RAGBot:
     def __init__(self, vector_store):
         self.vector_store = vector_store
+        # Pull the API token from env so code stays deployable without hardcoding secrets.
         self.api_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
         self.repo_id = Cfg.llm_model
+        # Defer client creation if token is missing to keep the app usable (with warnings).
         self.client = InferenceClient(api_key=self.api_token) if self.api_token else None
 
     def get_chn(self):
@@ -18,28 +21,33 @@ class RAGBot:
         query = input_dict["query"]
 
         # 1. Retrieve Docs
+        # Retrieve first so the LLM response is grounded in company policy, not guesswork.
         docs = self.vector_store.similarity_search(query, k=Cfg.k_ret)
         
         # 2. Build messages for chat-completions
         context_text = "\n\n".join([d.page_content for d in docs])
         system_msg = (
+            # Strict system prompt to avoid hallucination in a compliance-sensitive domain.
             "You are a helpful assistant. Use the context provided to answer the user's question. "
             "If you don't know, say \"I don't know\". Do not make up facts.\n\n"
             f"Context:\n{context_text}"
         )
 
         if not self.api_token:
+            # Fail fast with a human-readable message so the UI can guide the admin.
             return {
                 "result": "Missing HUGGINGFACEHUB_API_TOKEN in environment.",
                 "source_documents": docs,
             }
         if not self.client:
+            # Defensive check in case client init fails or env changes at runtime.
             return {
                 "result": "Missing InferenceClient configuration.",
                 "source_documents": docs,
             }
 
         try:
+            # Low temperature keeps responses consistent for policy Q&A.
             completion = self.client.chat.completions.create(
                 model=self.repo_id,
                 messages=[
@@ -51,9 +59,11 @@ class RAGBot:
             )
             ans = completion.choices[0].message.content
         except Exception as e:
+            # Surface upstream errors without crashing the app.
             ans = f"Connection Error: {str(e)}"
 
         return {
             "result": ans,
+            # Return sources so UI can show citations for trust and auditability.
             "source_documents": docs
         }

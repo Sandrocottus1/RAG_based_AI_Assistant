@@ -1,4 +1,4 @@
-Pluang Remote Work Policy (2025 Edition)
+Remote Work Policy (2025 Edition)
 
 1. Eligibility
 All engineering staff are eligible for "Hybrid-First" working models. 
@@ -10,5 +10,5 @@ The remaining 2 days are flexible remote days.
 Wednesday is a mandatory "All-Hands" day in the office.
 
 3. Equipment
-Pluang provides a one-time stipend of $500 for home office setup.
+The company provides a one-time stipend of $500 for home office setup.
 MacBook Pros are standard issue for dev roles.

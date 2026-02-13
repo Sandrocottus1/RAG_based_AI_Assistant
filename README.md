@@ -1,9 +1,9 @@
-Pluang Internal Knowledge Assistant (RAG)
-========================================
+AI Knowledge Assistant (RAG)
+============================
 
 Overview
 --------
-Streamlit-based internal knowledge assistant using a FAISS vector index and
+Streamlit-based knowledge assistant using a FAISS vector index and
 Hugging Face Router APIs for embeddings and LLM inference.
 
 Requirements

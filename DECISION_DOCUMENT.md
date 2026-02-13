@@ -1,16 +1,16 @@
-# Pluang Internal Knowledge Assistant - Technical Decision Document
+# AI Knowledge Assistant - Technical Decision Document
 
 **Author:** [Your Name]  
 **Institution:** [Your College/University]  
 **Date:** February 6, 2026  
-**Project:** RAG-based Internal Knowledge Assistant
+**Project:** RAG-based Knowledge Assistant
 
 ---
 
 ## 1. Project Overview
 
 ### 1.1 Problem Statement
-Pluang needed an internal knowledge assistant to help employees quickly query company policies and documentation without manual searching through multiple documents. The solution required:
+The organization needed an internal knowledge assistant to help employees quickly query policies and documentation without manual searching through multiple documents. The solution required:
 - Fast, accurate retrieval of relevant information
 - Natural language query interface
 - Easy document updates and re-indexing

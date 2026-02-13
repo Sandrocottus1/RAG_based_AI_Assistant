@@ -1,4 +1,4 @@
-Pluang Engineering Standards v4.0
+Engineering Standards v4.0
 
 1. Code Review
 No PR shall be merged without 2 approvals. 
