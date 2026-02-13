@@ -1,0 +1,13 @@
+name: Wake
+
+on:
+  schedule:
+    - cron: "*/10 * * * *" # Runs every 10 mins
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Curl
+        run: curl https://YOUR-APP-NAME.streamlit.app/
