@@ -8,7 +8,7 @@ Hugging Face Router APIs for embeddings and LLM inference.
 
 Deployed App
 -------------
-Access the live application here: https://pluagassignment-sayjr7rvushwkwhsewnoxx.streamlit.app/
+Access the live application here: https://aryanassignment-sayjr7rvushwkwhsewnoxx.streamlit.app/
 
 Requirements
 ------------
