@@ -9,20 +9,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
       - name: Install dependencies
         run: |
-          pip install selenium webdriver-manager
+          python -m pip install --upgrade pip
+          python -m pip install selenium webdriver-manager
 
-      - name: Run Wake Script
-        shell: python
+        - name: Run Wake Script
         run: |
+          python - <<'PY'
           from selenium import webdriver
           from selenium.webdriver.chrome.options import Options
           from selenium.webdriver.chrome.service import Service
@@ -49,16 +50,17 @@ jobs:
 
           # 3. Try to Click the 'Wake Up' Button if it exists
           try:
-              buttons = driver.find_elements(By.TAG_NAME, "button")
-              for btn in buttons:
-                  if "Yes, get this app back up!" in btn.text:
-                      print("Found Wake Button. Clicking...")
-                      btn.click()
-                      time.sleep(10) # Wait for reload
-                      print("Clicked!")
-                      break
+            buttons = driver.find_elements(By.TAG_NAME, "button")
+            for btn in buttons:
+              if "Yes, get this app back up!" in btn.text:
+                print("Found Wake Button. Clicking...")
+                btn.click()
+                time.sleep(10) # Wait for reload
+                print("Clicked!")
+                break
           except Exception as e:
-              print(f"Button check skipped: {e}")
+            print(f"Button check skipped: {e}")
 
           driver.quit()
           print("Done.")
+          PY

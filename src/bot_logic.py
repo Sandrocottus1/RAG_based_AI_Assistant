@@ -1,5 +1,6 @@
 # RAGBot: retrieval + LLM orchestration for grounded policy Q&A.
 import os
+import re
 
 from huggingface_hub import InferenceClient
 
@@ -29,8 +30,11 @@ class RAGBot:
         context_text = "\n\n".join([d.page_content for d in docs])
         system_msg = (
             # Strict system prompt to avoid hallucination in a compliance-sensitive domain.
-            "You are a helpful assistant. Use the context provided to answer the user's question in bullets if possible."
-            "If you don't know, say \"I don't know\". Do not make up facts.\n\n"
+            "You are a helpful assistant. Answer ONLY with bullet points."
+            "Each bullet should be concise and grounded in the provided context."
+            "Do not use paragraphs. Do not add preamble text."
+            "If you don't know, answer with a single bullet: I don't know."
+            "Do not make up facts.\n\n"
             f"Context:\n{context_text}"
         )
 
@@ -66,6 +70,7 @@ class RAGBot:
                 temperature=0.1,
             )
             ans = completion.choices[0].message.content
+            ans = self._ensure_bullets(ans)
         except Exception as e:
             # Surface upstream errors without crashing the app.
             ans = f"Connection Error: {str(e)}"
@@ -75,3 +80,21 @@ class RAGBot:
             # Return sources so UI can show citations for trust and auditability.
             "source_documents": docs
         }
+
+    @staticmethod
+    def _ensure_bullets(text):
+        cleaned = (text or "").strip()
+        if not cleaned:
+            return "- I don't know."
+
+        lines = [line.strip() for line in cleaned.splitlines() if line.strip()]
+        if lines and all(line.startswith("-") for line in lines):
+            return "\n".join(lines)
+
+        normalized = re.sub(r"\s+", " ", cleaned)
+        sentences = re.split(r"(?<=[.!?])\s+", normalized)
+        sentences = [s.strip() for s in sentences if s.strip()]
+        if not sentences:
+            return "- I don't know."
+
+        return "\n".join(f"- {s}" for s in sentences)
