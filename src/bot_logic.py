@@ -29,7 +29,7 @@ class RAGBot:
         context_text = "\n\n".join([d.page_content for d in docs])
         system_msg = (
             # Strict system prompt to avoid hallucination in a compliance-sensitive domain.
-            "You are a helpful assistant. Use the context provided to answer the user's question. "
+            "You are a helpful assistant. Use the context provided to answer the user's question in bullets if possible."
             "If you don't know, say \"I don't know\". Do not make up facts.\n\n"
             f"Context:\n{context_text}"
         )
