@@ -19,6 +19,7 @@ class RAGBot:
 
     def invoke(self, input_dict):
         query = input_dict["query"]
+        chat_history = input_dict.get("chat_history", [])
 
         # 1. Retrieve Docs
         # Retrieve first so the LLM response is grounded in company policy, not guesswork.
@@ -47,11 +48,18 @@ class RAGBot:
             }
 
         try:
+            # Keep message roles constrained to user/assistant for history.
+            prior_msgs = [
+                {"role": m["role"], "content": m["content"]}
+                for m in chat_history
+                if m.get("role") in ("user", "assistant") and m.get("content")
+            ]
             # Low temperature keeps responses consistent for policy Q&A.
             completion = self.client.chat.completions.create(
                 model=self.repo_id,
                 messages=[
                     {"role": "system", "content": system_msg},
+                    *prior_msgs,
                     {"role": "user", "content": query},
                 ],
                 max_tokens=512,

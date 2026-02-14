@@ -17,5 +17,9 @@ class Cfg:
     d_path = "data/raw"
     v_path = "data/vector_store"
     idx_path = "faiss_index"
+    # Chat history persistence to keep conversations stateful across reruns.
+    chat_hist_path = "data/chat_history.json"
+    # Keep last N turns (user+assistant pairs) to control prompt length.
+    hist_max_turns = 6
 
     

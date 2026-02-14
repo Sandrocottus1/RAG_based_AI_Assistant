@@ -1,6 +1,7 @@
 # Streamlit app: UI for indexing and chat-based policy Q&A.
 import streamlit as st
 import os
+import json
 from dotenv import load_dotenv
 
 # Load environment variables (API Keys) first!
@@ -32,6 +33,13 @@ with st.sidebar:
             else:
                 st.warning("No documents found. Add files to data/raw and retry.")
 
+    if st.button("Clear Chat History"):
+        st.session_state["messages"] = []
+        os.makedirs(os.path.dirname(Cfg.chat_hist_path), exist_ok=True)
+        with open(Cfg.chat_hist_path, "w", encoding="utf-8") as f:
+            json.dump([], f)
+        st.success("Chat history cleared.")
+
 # 3. System Initialization (Lazy Loading)
 def init_sys():
     ve = VecEng()
@@ -44,16 +52,44 @@ def init_sys():
     st.sidebar.warning("Index not found. Use 'Re-Index Knowledge Base' to initialize.")
     return None
 
+def load_chat_history():
+    if os.path.exists(Cfg.chat_hist_path):
+        try:
+            with open(Cfg.chat_hist_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                return [m for m in data if isinstance(m, dict)]
+        except Exception:
+            return []
+    return []
+
+def save_chat_history(messages):
+    os.makedirs(os.path.dirname(Cfg.chat_hist_path), exist_ok=True)
+    with open(Cfg.chat_hist_path, "w", encoding="utf-8") as f:
+        json.dump(messages, f)
+
 if "qa" not in st.session_state:
     # Cache the chain across reruns so the app feels fast and consistent.
     st.session_state["qa"] = init_sys()
 
+if "messages" not in st.session_state:
+    st.session_state["messages"] = load_chat_history()
+
 qa = st.session_state["qa"]
+messages = st.session_state["messages"]
 
 # 4. Chat Interface
+for m in messages:
+    role = m.get("role")
+    content = m.get("content")
+    if role in ("user", "assistant") and content:
+        st.chat_message(role).markdown(content)
+
 if q := st.chat_input("Ask about your documents..."):
     # Display user message
     st.chat_message("user").markdown(q)
+    messages.append({"role": "user", "content": q})
+    save_chat_history(messages)
 
     if qa:
         # Display AI Response
@@ -63,11 +99,14 @@ if q := st.chat_input("Ask about your documents..."):
 
             # Send query to RAG pipeline
             # The chain returns both answer and sources for transparency.
-            res = qa.invoke({"query": q})
+            trimmed = messages[-(Cfg.hist_max_turns * 2):]
+            res = qa.invoke({"query": q, "chat_history": trimmed})
             ans = res["result"]
             src = res["source_documents"]
 
             placeholder.markdown(ans)
+            messages.append({"role": "assistant", "content": ans})
+            save_chat_history(messages)
 
             # Show Citations
             with st.expander("View Sources"):
@@ -78,4 +117,7 @@ if q := st.chat_input("Ask about your documents..."):
                     st.text(s.page_content[:150] + "...")
     else:
         # Clear guidance to prevent confusion when index is missing.
-        st.error("⚠️ System not initialized. Please click 'Re-Index Knowledge Base' in the sidebar first.")
+        err_msg = "System not initialized. Please click 'Re-Index Knowledge Base' in the sidebar first."
+        st.error("⚠️ " + err_msg)
+        messages.append({"role": "assistant", "content": err_msg})
+        save_chat_history(messages)
