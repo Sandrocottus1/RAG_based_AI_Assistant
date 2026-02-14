@@ -1,7 +1,7 @@
 name: Wake Streamlit App
 on:
   schedule:
-    - cron: "0 */2 * * *" # Runs every 2 hours
+    - cron: "0 */4 * * *" # Runs every 4 hours
   workflow_dispatch: # Allows manual trigger
 
 jobs:
@@ -11,12 +11,12 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v2
 
-      - name: Run Headless Browser to Wake App
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
 
-      - name: Install Selenium
+      - name: Install dependencies
         run: |
           pip install selenium webdriver-manager
 
@@ -25,21 +25,40 @@ jobs:
         run: |
           from selenium import webdriver
           from selenium.webdriver.chrome.options import Options
+          from selenium.webdriver.chrome.service import Service
+          from webdriver_manager.chrome import ChromeDriverManager
+          from selenium.webdriver.common.by import By
           import time
 
+          # 1. Setup Chrome Options (Headless)
           options = Options()
           options.add_argument('--headless')
           options.add_argument('--no-sandbox')
           options.add_argument('--disable-dev-shm-usage')
+          options.add_argument('--disable-gpu')
 
-          driver = webdriver.Chrome(options=options)
-          driver.get("https://aryanasignment-....streamlit.app") # YOUR URL HERE
+          # 2. Initialize Driver with Explicit Service (Fixes the "Exit Code 1" crash)
+          service = Service(ChromeDriverManager().install())
+          driver = webdriver.Chrome(service=service, options=options)
 
-          print("Page title:", driver.title)
-          time.sleep(10) # Wait for page/buttons to load
+          print("Visiting app...")
+          driver.get("https://aryanasignment-sayjr7rvushwkwhsewnoxx.streamlit.app")
+          
+          time.sleep(5)
+          print(f"Page Title: {driver.title}")
 
-          # Optional: Add logic here to find the 'wake up' button by text/ID and click it
-          # Usually just loading the page with a browser driver is enough to trigger the wake-up 
-          # unlike a simple curl request.
+          # 3. Try to Click the 'Wake Up' Button if it exists
+          try:
+              buttons = driver.find_elements(By.TAG_NAME, "button")
+              for btn in buttons:
+                  if "Yes, get this app back up!" in btn.text:
+                      print("Found Wake Button. Clicking...")
+                      btn.click()
+                      time.sleep(10) # Wait for reload
+                      print("Clicked!")
+                      break
+          except Exception as e:
+              print(f"Button check skipped: {e}")
 
           driver.quit()
+          print("Done.")
