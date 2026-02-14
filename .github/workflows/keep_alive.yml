@@ -21,7 +21,8 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install selenium webdriver-manager
 
-        - name: Run Wake Script
+      - name: Run Wake Script
+        shell: bash
         run: |
           python - <<'PY'
           from selenium import webdriver
@@ -43,23 +44,32 @@ jobs:
           driver = webdriver.Chrome(service=service, options=options)
 
           print("Visiting app...")
-          driver.get("https://aryanasignment-sayjr7rvushwkwhsewnoxx.streamlit.app")
+            url = "https://aryanasignment-sayjr7rvushwkwhsewnoxx.streamlit.app"
+            for attempt in range(3):
+              try:
+                driver.get(url)
+                break
+              except Exception as e:
+                if attempt == 2:
+                  raise
+                print(f"Load failed ({attempt + 1}/3): {e}")
+                time.sleep(5)
           
           time.sleep(5)
           print(f"Page Title: {driver.title}")
 
           # 3. Try to Click the 'Wake Up' Button if it exists
           try:
-            buttons = driver.find_elements(By.TAG_NAME, "button")
-            for btn in buttons:
-              if "Yes, get this app back up!" in btn.text:
-                print("Found Wake Button. Clicking...")
-                btn.click()
-                time.sleep(10) # Wait for reload
-                print("Clicked!")
-                break
+              buttons = driver.find_elements(By.TAG_NAME, "button")
+              for btn in buttons:
+                  if "Yes, get this app back up!" in btn.text:
+                      print("Found Wake Button. Clicking...")
+                      btn.click()
+                      time.sleep(10) # Wait for reload
+                      print("Clicked!")
+                      break
           except Exception as e:
-            print(f"Button check skipped: {e}")
+              print(f"Button check skipped: {e}")
 
           driver.quit()
           print("Done.")
