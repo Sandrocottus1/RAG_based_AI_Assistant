@@ -1,13 +1,149 @@
-Engineering Standards v4.0
+🚗 1. Powertrain & Engine
 
-1. Code Review
-No PR shall be merged without 2 approvals. 
-Self-merging is strictly prohibited unless during a P0 incident.
+Engine Type & Architecture
 
-2. Tech Stack
-Backend: Go (Golang) for high-throughput services. Python for Data/AI.
-Frontend: React Native for mobile, Next.js for web dashboards.
+M TwinPower Turbo V-8 petrol engine
 
-3. Deployment
-We use a Blue-Green deployment strategy on Kubernetes (GKE).
-Friday deploys are banned after 2 PM local time.
+8 cylinders, 4 valves per cylinder
+
+Displacement: 4,395 cc (4.4 L)
+
+Output
+
+Max Power: 460 kW (625 hp) @ ~6,000 rpm
+
+Peak Torque: 750 Nm @ ~1,800–5,800 rpm
+
+Engine Features (from detailed spec guides)
+
+Cross-bank twin-scroll turbochargers
+
+High Precision Injection
+
+Double-VANOS variable camshaft timing
+
+VALVETRONIC fully variable valve lift
+
+Compression ratio around 10.0 : 1 (varies slightly by market)
+
+⚙️ 2. Transmission & Drivetrain
+
+Transmission
+
+8-speed M Steptronic Sport automatic
+
+Drivelogic: multiple driving programs
+
+Launch Control capability
+
+Drivetrain
+
+M xDrive intelligent all-wheel-drive
+
+Electronically controlled multi-plate clutch
+
+Variable torque distribution front/rear
+
+Active M Sport Differential for optimized traction and handling
+
+🏁 3. Performance
+
+Acceleration & Top Speed
+
+0–100 km/h: approx. 3.2 s
+
+Top speed 250 km/h (governed)
+
+Optional M Driver’s Package allows approx. 305 km/h (190 mph)
+
+Fuel & Efficiency
+
+Combined fuel consumption ~10.4–11.6 L/100 km (WLTP)
+
+CO₂ emissions ~250–265 g/km (WLTP)
+
+🛞 4. Chassis, Suspension & Brakes
+
+Suspension System
+
+Front: Adaptive M suspension with double-wishbone lightweight aluminum
+
+Rear: Adaptive M suspension with five-link axle
+
+Variable Damper Control for Comfort / Sport / Sport+ modes
+
+Steering
+
+Electric Power Steering (EPS) with M-specific Servotronic
+
+Variable sport steering ratio
+
+Braking System
+
+M Compound brakes
+
+Front: vented with six-piston fixed calipers
+
+Rear: vented with single-piston floating calipers
+
+Driving Dynamics Systems
+
+DSC (Dynamic Stability Control) incl. ABS
+
+M Dynamic Mode (MDM)
+
+Dry Braking, CBC, DBC, Active M Differential integration
+
+📏 5. Dimensions & Weights
+
+Typical Dimensions (Gran Coupe / Coupe)
+
+Length: ~5,098 mm (Gran Coupe) / ~4,867 mm (Coupe)
+
+Width: ~1,943 mm
+
+Height: ~1,420 mm
+
+Wheelbase ~3,027 mm (Gran Coupe)
+
+Mass
+
+Kerb / unladen weight ~2,070–2,085 kg (varies by body style)
+
+Permitted gross weight ~2,440–2,600 kg
+
+🧰 6. Standard Engineering & Performance Tech
+
+Adaptive Dynamics & Driving Modes
+
+M Mode selector (Road, Sport, Sport Plus, Track)
+
+M Setup system (individual tuning of engine, suspension, steering, braking response)
+
+Aerodynamics & Lightweighting
+
+M Carbon roof (reduces center of gravity)
+
+CFRP aerodynamic components (spoilers, rear diffuser)
+
+Performance tyres and M light alloy wheels
+
+🧪 7. Additional Advanced Systems
+
+Modern M8 Competition models also include:
+
+Driving Assistant Professional suite (lane assist, collision warning, adaptive cruise)
+
+Active Protection (pre-collision safety systems)
+
+M Servotronic steering assist
+
+Launch Control and Race-ready transmission calibration
+
+🛠️ 8. Typical Engineering Insights
+
+From detailed engine specification sheets and ride-quality data:
+
+Output per litre ~104.7 kW/L (indicative of high specific power)
+
+Powertrain and chassis were developed and tested extensively on racing circuits (e.g., Nürburgring) and BMW’s test centers for maximum balance of performance and durability.
