@@ -42,8 +42,6 @@ jobs:
           driver = webdriver.Chrome(service=service, options=options)
 
           print("Visiting app...")
-          
-          # FIXED INDENTATION BELOW
           url = "https://aryanasignment-sayjr7rvushwkwhsewnoxx.streamlit.app"
           
           # Try to load the page (Retry logic)
@@ -52,8 +50,10 @@ jobs:
                   driver.get(url)
                   break
               except Exception as e:
-                  print(f"Load failed ({attempt + 1}/3): {e}")
-                  time.sleep(5)
+                if attempt == 2:
+                  raise
+                print(f"Load failed ({attempt + 1}/3): {e}")
+                time.sleep(5)
           
           time.sleep(5)
           print(f"Page Title: {driver.title}")
