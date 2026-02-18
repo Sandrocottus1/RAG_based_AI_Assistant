@@ -30,10 +30,11 @@ class RAGBot:
         context_text = "\n\n".join([d.page_content for d in docs])
         system_msg = (
             # Strict system prompt to avoid hallucination in a compliance-sensitive domain.
-            "You are a helpful assistant. Use a clear, user-friendly style."
-            "Use short paragraphs for direct answers and bullet points for lists, steps, or multiple items."
-            "Keep it concise and grounded in the provided context."
-            "If you don't know, say \"I don't know\". Do not make up facts.\n\n"
+            "You are a helpful assistant providing clear, professional answers about company policies. "
+            "Write in clear paragraphs. Only use numbered lists (1. 2. 3.) when absolutely necessary for step-by-step instructions. "
+            "DO NOT use bullet points or dashes. Avoid any sub-bullets or nested formatting. "
+            "Keep answers concise and grounded in the provided context. "
+            "If you don't know, say 'I don't know'. Do not make up facts.\n\n"
             f"Context:\n{context_text}"
         )
 
@@ -85,15 +86,84 @@ class RAGBot:
         cleaned = (text or "").strip()
         if not cleaned:
             return "I don't know."
-
-        normalized = re.sub(r"\s+", " ", cleaned)
+        
+        # Normalize line endings
+        cleaned = cleaned.replace("\r\n", "\n").replace("\r", "\n")
+        
+        # Split into lines and clean each
+        lines = [line.rstrip() for line in cleaned.split("\n")]
+        
+        # Remove excessive blank lines
+        cleaned_lines = []
+        prev_blank = False
+        for line in lines:
+            is_blank = not line.strip()
+            if is_blank:
+                if not prev_blank:
+                    cleaned_lines.append("")
+                prev_blank = True
+            else:
+                cleaned_lines.append(line.strip())
+                prev_blank = False
+        
+        # Strip leading/trailing blanks
+        while cleaned_lines and cleaned_lines[0] == "":
+            cleaned_lines.pop(0)
+        while cleaned_lines and cleaned_lines[-1] == "":
+            cleaned_lines.pop()
+        
+        # Check if response has intentional list formatting
+        has_list = any(re.match(r"^\s*(?:-|\*|\d+[\.\)])\s+", line) for line in cleaned_lines)
+        
+        if has_list:
+            # Clean up list items: remove extra indentation and fix numbering
+            result_lines = []
+            for line in cleaned_lines:
+                if line:
+                    # Remove leading bullets/numbers and extra spaces, keep content
+                    stripped = re.sub(r"^\s*[-*•·]\s+", "", line)
+                    stripped = re.sub(r"^\s*\d+[\.\)]\s+", "", stripped)
+                    result_lines.append(stripped)
+                else:
+                    result_lines.append("")
+            
+            # Remove consecutive blank lines
+            final_lines = []
+            prev_blank = False
+            for line in result_lines:
+                if not line.strip():
+                    if not prev_blank:
+                        final_lines.append("")
+                    prev_blank = True
+                else:
+                    final_lines.append(line)
+                    prev_blank = False
+            
+            return "\n".join(final_lines).strip()
+        
+        # For non-list responses, join into paragraphs
+        text_content = "\n".join(cleaned_lines)
+        normalized = re.sub(r"[ \t]+", " ", text_content).strip()
+        
         sentences = re.split(r"(?<=[.!?])\s+", normalized)
         sentences = [s.strip() for s in sentences if s.strip()]
+        
         if not sentences:
             return "I don't know."
-
-        # Keep short replies as a paragraph, use bullets for longer multi-item responses.
-        if len(sentences) <= 2 and len(normalized) <= 220:
+        
+        # Short replies stay as paragraph
+        if len(sentences) <= 2 and len(normalized) <= 240:
             return " ".join(sentences)
-
-        return "\n".join(f"- {s}" for s in sentences)
+        
+        # Group sentences into readable paragraphs (2-3 sentences each)
+        paragraphs = []
+        current_para = []
+        for sentence in sentences:
+            current_para.append(sentence)
+            if len(current_para) >= 2:
+                paragraphs.append(" ".join(current_para))
+                current_para = []
+        if current_para:
+            paragraphs.append(" ".join(current_para))
+        
+        return "\n\n".join(paragraphs)
