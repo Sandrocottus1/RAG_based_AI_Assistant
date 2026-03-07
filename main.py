@@ -78,6 +78,24 @@ if "messages" not in st.session_state:
 qa = st.session_state["qa"]
 messages = st.session_state["messages"]
 
+with st.sidebar:
+    st.divider()
+    st.subheader("LLM Status")
+    if qa:
+        active_model = getattr(qa, "repo_id", Cfg.llm_model)
+        fallback_models = getattr(qa, "fallback_models", ())
+        token_ready = bool(getattr(qa, "api_token", None))
+
+        st.caption(f"Active model: {active_model}")
+        if fallback_models:
+            st.caption("Fallbacks: " + ", ".join(fallback_models))
+        else:
+            st.caption("Fallbacks: none configured")
+
+        st.caption("HF token: configured" if token_ready else "HF token: missing")
+    else:
+        st.caption("System not initialized yet.")
+
 # 4. Chat Interface
 for m in messages:
     role = m.get("role")
