@@ -12,6 +12,9 @@ class RAGBot:
         # Pull the API token from env so code stays deployable without hardcoding secrets.
         self.api_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
         self.repo_id = Cfg.llm_model
+        self.fallback_models = tuple(
+            m for m in Cfg.llm_fallback_models if m and m != self.repo_id
+        )
         # Defer client creation if token is missing to keep the app usable (with warnings).
         self.client = InferenceClient(api_key=self.api_token) if self.api_token else None
 
@@ -59,16 +62,7 @@ class RAGBot:
                 if m.get("role") in ("user", "assistant") and m.get("content")
             ]
             # Low temperature keeps responses consistent for policy Q&A.
-            completion = self.client.chat.completions.create(
-                model=self.repo_id,
-                messages=[
-                    {"role": "system", "content": system_msg},
-                    *prior_msgs,
-                    {"role": "user", "content": query},
-                ],
-                max_tokens=512,
-                temperature=0.1,
-            )
+            completion = self._create_chat_completion(system_msg, prior_msgs, query)
             ans = completion.choices[0].message.content
             ans = self._format_answer(ans)
         except Exception as e:
@@ -80,6 +74,46 @@ class RAGBot:
             # Return sources so UI can show citations for trust and auditability.
             "source_documents": docs
         }
+
+    def _create_chat_completion(self, system_msg, prior_msgs, query):
+        attempted_models = []
+        last_error = None
+        candidate_models = (self.repo_id, *self.fallback_models)
+
+        for model_name in candidate_models:
+            attempted_models.append(model_name)
+            try:
+                completion = self.client.chat.completions.create(
+                    model=model_name,
+                    messages=[
+                        {"role": "system", "content": system_msg},
+                        *prior_msgs,
+                        {"role": "user", "content": query},
+                    ],
+                    max_tokens=512,
+                    temperature=0.1,
+                )
+                if model_name != self.repo_id:
+                    # Promote a working fallback so future calls succeed faster.
+                    self.repo_id = model_name
+                return completion
+            except Exception as error:
+                err_text = str(error)
+                model_not_supported = "model_not_supported" in err_text.lower() or "not supported" in err_text.lower()
+                if model_not_supported:
+                    last_error = error
+                    continue
+                raise
+
+        if last_error:
+            raise RuntimeError(
+                "No supported chat model found. "
+                f"Tried: {', '.join(attempted_models)}. "
+                "Set HUGGINGFACE_LLM_MODEL (and optional HUGGINGFACE_LLM_FALLBACK_MODELS) to models available in your enabled providers. "
+                f"Last provider error: {last_error}"
+            )
+
+        raise RuntimeError("No chat model candidates configured.")
 
     @staticmethod
     def _format_answer(text):

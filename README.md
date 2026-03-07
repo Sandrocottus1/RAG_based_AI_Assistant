@@ -14,6 +14,7 @@ Requirements
 ------------
 - Python 3.9+
 - Hugging Face API token in `HUGGINGFACEHUB_API_TOKEN`
+- A Hugging Face Router-supported chat model (configurable)
 
 Setup
 -----
@@ -29,6 +30,13 @@ pip install -r requirements.txt
 
 ```
 HUGGINGFACEHUB_API_TOKEN=your_token_here
+```
+
+Optional model configuration:
+
+```
+HUGGINGFACE_LLM_MODEL=meta-llama/Llama-3.1-8B-Instruct
+HUGGINGFACE_LLM_FALLBACK_MODELS=Qwen/Qwen2.5-7B-Instruct,mistralai/Mistral-7B-Instruct-v0.3
 ```
 
 If you use a fine-grained token, make sure it has permission to call
