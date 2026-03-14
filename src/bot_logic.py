@@ -1,4 +1,4 @@
-# RAGBot: retrieval + LLM orchestration for grounded policy Q&A.
+# RAGBot: retrieval + LLM orchestration for grounded BMW Q&A.
 import os
 import re
 
@@ -26,14 +26,14 @@ class RAGBot:
         chat_history = input_dict.get("chat_history", [])
 
         # 1. Retrieve Docs
-        # Retrieve first so the LLM response is grounded in company policy, not guesswork.
+        # Retrieve first so the LLM response is grounded in BMW documents, not guesswork.
         docs = self.vector_store.similarity_search(query, k=Cfg.k_ret)
         
         # 2. Build messages for chat-completions
         context_text = "\n\n".join([d.page_content for d in docs])
         system_msg = (
-            # Strict system prompt to avoid hallucination in a compliance-sensitive domain.
-            "You are a helpful assistant providing clear, professional answers about company policies. "
+            # Strict system prompt to avoid hallucination and keep BMW answers grounded.
+            "You are BMW Assistant, a helpful assistant providing clear, professional answers about BMW company information and BMW vehicles. "
             "Write in clear paragraphs. Only use numbered lists (1. 2. 3.) when absolutely necessary for step-by-step instructions. "
             "DO NOT use bullet points or dashes. Avoid any sub-bullets or nested formatting. "
             "Keep answers concise and grounded in the provided context. "

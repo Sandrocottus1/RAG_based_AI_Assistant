@@ -3,7 +3,7 @@ import os
 
 class Cfg:
     # Centralized config keeps tuning and environment choices consistent.
-    pg_title = "AI Knowledge Base"
+    pg_title = "BMW Assistant Knowledge Base"
     # Embedding model optimized for speed/quality tradeoff in RAG.
     mdl_nm = "sentence-transformers/all-MiniLM-L6-v2"
     # Chat model can be overridden with HUGGINGFACE_LLM_MODEL.

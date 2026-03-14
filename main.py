@@ -15,7 +15,7 @@ from src.bot_logic import RAGBot
 
 # 1. Page Configuration
 st.set_page_config(page_title=Cfg.pg_title)
-st.title("AI Knowledge Assistant")
+st.title("BMW Assistant - Ask About BMW Company and Cars")
 
 # 2. Sidebar / Admin Panel
 with st.sidebar:
@@ -103,7 +103,7 @@ for m in messages:
     if role in ("user", "assistant") and content:
         st.chat_message(role).markdown(content)
 
-if q := st.chat_input("Ask about your documents..."):
+if q := st.chat_input("Ask about BMW company, models, specs, pricing, and ownership..."):
     # Display user message
     st.chat_message("user").markdown(q)
     messages.append({"role": "user", "content": q})
