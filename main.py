@@ -2,6 +2,7 @@
 import streamlit as st
 import os
 import json
+import re
 from dotenv import load_dotenv
 
 # Load environment variables (API Keys) first!
@@ -68,6 +69,20 @@ def save_chat_history(messages):
     with open(Cfg.chat_hist_path, "w", encoding="utf-8") as f:
         json.dump(messages, f)
 
+
+def safe_chat_markdown(text):
+    if not isinstance(text, str):
+        return ""
+
+    # Normalize spacing and escape markdown control chars to avoid accidental italics.
+    cleaned = text.replace("\r\n", "\n").replace("\r", "\n").strip()
+    cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
+    # Models sometimes use underscores as separators; map them back to readable spaces.
+    cleaned = re.sub(r"(?<=\w)_(?=\w)", " ", cleaned)
+    cleaned = cleaned.replace("\\", "\\\\")
+    cleaned = cleaned.replace("_", "\\_").replace("*", "\\*").replace("`", "\\`")
+    return cleaned
+
 if "qa" not in st.session_state:
     # Cache the chain across reruns so the app feels fast and consistent.
     st.session_state["qa"] = init_sys()
@@ -101,11 +116,11 @@ for m in messages:
     role = m.get("role")
     content = m.get("content")
     if role in ("user", "assistant") and content:
-        st.chat_message(role).markdown(content)
+        st.chat_message(role).markdown(safe_chat_markdown(content))
 
 if q := st.chat_input("Ask about BMW company, models, specs, pricing, and ownership..."):
     # Display user message
-    st.chat_message("user").markdown(q)
+    st.chat_message("user").markdown(safe_chat_markdown(q))
     messages.append({"role": "user", "content": q})
     save_chat_history(messages)
 
@@ -122,7 +137,7 @@ if q := st.chat_input("Ask about BMW company, models, specs, pricing, and owners
             ans = res["result"]
             src = res["source_documents"]
 
-            placeholder.markdown(ans)
+            placeholder.markdown(safe_chat_markdown(ans))
             messages.append({"role": "assistant", "content": ans})
             save_chat_history(messages)
 
