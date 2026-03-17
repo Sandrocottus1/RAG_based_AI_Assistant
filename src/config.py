@@ -25,6 +25,12 @@ class Cfg:
     d_path = "data/raw"
     v_path = "data/vector_store"
     idx_path = "faiss_index"
+    # Only ingest files whose names contain one of these keywords.
+    # Override with SOURCE_FILENAME_KEYWORDS (comma-separated), e.g. "bmw,cars".
+    _source_keywords_env = os.getenv("SOURCE_FILENAME_KEYWORDS", "bmw")
+    source_filename_keywords = tuple(
+        k.strip().lower() for k in _source_keywords_env.split(",") if k.strip()
+    )
     # Chat history persistence to keep conversations stateful across reruns.
     chat_hist_path = "data/chat_history.json"
     # Keep last N turns (user+assistant pairs) to control prompt length.

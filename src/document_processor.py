@@ -19,8 +19,16 @@ class DocProc:
             os.makedirs(Cfg.d_path)
             return raw_d
 
+        keywords = getattr(Cfg, "source_filename_keywords", ())
+
         for f in os.listdir(Cfg.d_path):
             fp = os.path.join(Cfg.d_path, f)
+            if not os.path.isfile(fp):
+                continue
+
+            # Keep the index domain-specific by only ingesting matching filenames.
+            if keywords and not any(k in f.lower() for k in keywords):
+                continue
 
             if f.endswith(".txt"):
                 # TextLoader is the simplest path for internal policy docs.
