@@ -28,6 +28,13 @@ class RAGBot:
         # 1. Retrieve Docs
         # Retrieve first so the LLM response is grounded in BMW documents, not guesswork.
         docs = self.vector_store.similarity_search(query, k=Cfg.k_ret)
+        docs = self._filter_docs_by_source(docs)
+
+        if not docs:
+            return {
+                "result": "I don't know based on the current BMW knowledge sources. Please re-index with BMW files.",
+                "source_documents": [],
+            }
         
         # 2. Build messages for chat-completions
         context_text = "\n\n".join([d.page_content for d in docs])
@@ -74,6 +81,19 @@ class RAGBot:
             # Return sources so UI can show citations for trust and auditability.
             "source_documents": docs
         }
+
+    @staticmethod
+    def _filter_docs_by_source(docs):
+        keywords = tuple(getattr(Cfg, "source_filename_keywords", ()))
+        if not keywords:
+            return docs
+
+        filtered = []
+        for d in docs:
+            src = str(getattr(d, "metadata", {}).get("source", "")).lower()
+            if any(k in src for k in keywords):
+                filtered.append(d)
+        return filtered
 
     def _create_chat_completion(self, system_msg, prior_msgs, query):
         attempted_models = []
