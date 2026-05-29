@@ -99,31 +99,56 @@ class RAGBot:
         attempted_models = []
         last_error = None
         candidate_models = (self.repo_id, *self.fallback_models)
-
+        # Try each candidate model. For transient network/provider errors (timeouts,
+        # 502/503/504), retry a few times then continue to the next candidate so the
+        # app can fall back instead of crashing.
         for model_name in candidate_models:
             attempted_models.append(model_name)
-            try:
-                completion = self.client.chat.completions.create(
-                    model=model_name,
-                    messages=[
-                        {"role": "system", "content": system_msg},
-                        *prior_msgs,
-                        {"role": "user", "content": query},
-                    ],
-                    max_tokens=512,
-                    temperature=0.1,
-                )
-                if model_name != self.repo_id:
-                    # Promote a working fallback so future calls succeed faster.
-                    self.repo_id = model_name
-                return completion
-            except Exception as error:
-                err_text = str(error)
-                model_not_supported = "model_not_supported" in err_text.lower() or "not supported" in err_text.lower()
-                if model_not_supported:
-                    last_error = error
-                    continue
-                raise
+            # Per-model retry attempts for transient failures
+            retries = 3
+            backoff = 1.0
+            for attempt in range(1, retries + 1):
+                try:
+                    completion = self.client.chat.completions.create(
+                        model=model_name,
+                        messages=[
+                            {"role": "system", "content": system_msg},
+                            *prior_msgs,
+                            {"role": "user", "content": query},
+                        ],
+                        max_tokens=512,
+                        temperature=0.1,
+                    )
+                    if model_name != self.repo_id:
+                        # Promote a working fallback so future calls succeed faster.
+                        self.repo_id = model_name
+                    return completion
+                except Exception as error:
+                    err_text = str(error).lower()
+                    model_not_supported = "model_not_supported" in err_text or "not supported" in err_text
+                    transient = any(x in err_text for x in ("504", "502", "503", "gateway", "timeout", "timed out", "connection"))
+
+                    if model_not_supported:
+                        # Model truly unsupported by provider — try next candidate model.
+                        last_error = error
+                        break
+
+                    if transient and attempt < retries:
+                        # Wait an increasing amount of time and retry the same model.
+                        import time
+
+                        time.sleep(backoff)
+                        backoff *= 2
+                        last_error = error
+                        continue
+
+                    if transient:
+                        # Exhausted retries for this model — record and try next candidate.
+                        last_error = error
+                        break
+
+                    # Non-transient, non-model-support error — surface it to caller.
+                    raise
 
         if last_error:
             raise RuntimeError(
